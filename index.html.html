@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DataVerif · CEIPA Laboratorio de Datos</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#07090f; --surface:#0f1420; --surface2:#151d2e; --surface3:#1a2540;
+  --border:#1e2d45; --border2:#253550;
+  --accent:#00d4aa; --accent2:#3b82f6; --warn:#f59e0b; --danger:#ef4444;
+  --text:#e2e8f0; --muted:#64748b; --muted2:#475569;
+  --mono:'Space Mono',monospace; --sans:'DM Sans',sans-serif;
+  --hot:#00d4aa; --warm:#3b82f6; --mild:#f59e0b; --cold:#ef4444;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,170,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,170,.025) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;z-index:0;}
+
+.wrap{position:relative;z-index:1;max-width:900px;margin:0 auto;padding:40px 20px 80px;}
+
+/* HEADER */
+header{text-align:center;margin-bottom:48px;}
+.hd-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(0,212,170,.08);border:1px solid rgba(0,212,170,.2);border-radius:24px;padding:6px 18px;margin-bottom:20px;}
+.hd-badge span{font-family:var(--mono);font-size:.7rem;color:var(--accent);letter-spacing:2px;text-transform:uppercase;}
+.hd-title{font-family:var(--mono);font-size:2.2rem;font-weight:700;color:#fff;letter-spacing:-1px;margin-bottom:8px;}
+.hd-title em{color:var(--accent);font-style:normal;}
+.hd-sub{font-size:.88rem;color:var(--muted);max-width:500px;margin:0 auto;}
+
+/* TABS */
+.tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:5px;margin-bottom:28px;}
+.tab{flex:1;padding:9px;border:none;border-radius:10px;font-family:var(--mono);font-size:.72rem;letter-spacing:.5px;color:var(--muted);background:transparent;cursor:pointer;transition:all .2s;}
+.tab.active{background:var(--surface3);color:var(--accent);border:1px solid var(--border2);}
+
+/* CARD */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:28px;margin-bottom:20px;position:relative;overflow:hidden;}
+.card-accent::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2),transparent);}
+
+.lbl{font-family:var(--mono);font-size:.68rem;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;display:block;}
+.lbl-muted{font-family:var(--mono);font-size:.68rem;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;display:block;}
+
+/* INPUTS */
+.input-row{display:flex;gap:10px;flex-wrap:wrap;}
+.inp{flex:1;min-width:180px;background:var(--bg);border:1px solid var(--border2);border-radius:12px;padding:13px 18px;color:var(--text);font-family:var(--mono);font-size:.82rem;outline:none;transition:border-color .2s,box-shadow .2s;}
+.inp:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,212,170,.1);}
+.inp::placeholder{color:var(--muted);}
+.inp-sm{font-size:.78rem;padding:10px 14px;}
+
+.btn{border:none;border-radius:12px;padding:13px 24px;font-family:var(--mono);font-size:.78rem;font-weight:700;cursor:pointer;transition:all .15s;letter-spacing:.5px;}
+.btn-primary{background:linear-gradient(135deg,var(--accent),#00b894);color:#07090f;}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,212,170,.3);}
+.btn-ghost{background:var(--surface2);border:1px solid var(--border2);color:var(--muted);}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
+.btn-sm{padding:8px 16px;font-size:.72rem;}
+
+.quick-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px;align-items:center;}
+.q-lbl{font-size:.72rem;color:var(--muted);}
+.q-btn{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px 12px;font-size:.7rem;font-family:var(--mono);color:var(--muted2);cursor:pointer;transition:all .15s;}
+.q-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+/* MANUAL SCORE PANEL */
+#manualPanel{display:none;}
+.score-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
+@media(max-width:580px){.score-grid{grid-template-columns:1fr;}}
+.score-item{background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:16px;}
+.score-item-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.score-item-icon{font-size:1.1rem;}
+.score-item-name{font-size:.82rem;font-weight:600;flex:1;}
+.score-item-max{font-family:var(--mono);font-size:.72rem;color:var(--muted);}
+.score-slider{width:100%;accent-color:var(--accent);cursor:pointer;margin-bottom:6px;}
+.score-val{font-family:var(--mono);font-size:.82rem;color:var(--accent);font-weight:700;}
+.score-criteria{font-size:.72rem;color:var(--muted);line-height:1.5;margin-top:6px;}
+
+.analyst-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+@media(max-width:580px){.analyst-grid{grid-template-columns:1fr;}}
+
+/* LOADING */
+#loading{display:none;text-align:center;padding:48px 20px;}
+.spin{width:52px;height:52px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 16px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.step{font-size:.78rem;font-family:var(--mono);color:var(--muted);margin:5px 0;transition:color .3s;}
+.step.active{color:var(--accent);}
+.step.done{color:#00b894;}
+
+/* RESULTS */
+#results{display:none;animation:fadeUp .4s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+/* THERMO HERO */
+.hero{display:flex;gap:28px;align-items:center;flex-wrap:wrap;}
+.thermo-wrap{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:6px;}
+.t-score{font-family:var(--mono);font-size:3rem;font-weight:700;line-height:1;}
+.t-zone-badge{font-family:var(--mono);font-size:.7rem;padding:4px 14px;border-radius:20px;font-weight:700;letter-spacing:1px;}
+.hero-info{flex:1;min-width:200px;}
+.hero-info h2{font-size:1.25rem;font-weight:700;margin-bottom:4px;}
+.hero-url{font-family:var(--mono);font-size:.72rem;color:var(--muted);word-break:break-all;margin-bottom:14px;}
+.verdict{border-radius:12px;padding:14px 18px;font-size:.87rem;line-height:1.55;}
+.verdict strong{display:block;margin-bottom:4px;}
+.verdict .rec{font-size:.8rem;opacity:.85;margin-top:6px;}
+
+/* DIMS */
+.dims-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
+@media(max-width:560px){.dims-grid{grid-template-columns:1fr;}}
+.dim{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;}
+.dim-hdr{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.dim-icon{font-size:1.1rem;}
+.dim-name{font-size:.82rem;font-weight:600;flex:1;}
+.dim-pts{font-family:var(--mono);font-size:.82rem;font-weight:700;}
+.bar-bg{background:var(--bg);border-radius:4px;height:5px;overflow:hidden;margin-bottom:8px;}
+.bar-fill{height:100%;border-radius:4px;width:0;transition:width 1.1s cubic-bezier(.4,0,.2,1);}
+.dim-note{font-size:.74rem;color:var(--muted);line-height:1.45;}
+.dim-criterion{font-size:.72rem;color:var(--muted2);margin-top:4px;font-style:italic;}
+
+/* FRV TABLE */
+.frv-table{width:100%;border-collapse:collapse;}
+.frv-table tr{border-bottom:1px solid var(--border);}
+.frv-table tr:last-child{border-bottom:none;}
+.frv-table td{padding:9px 4px;font-size:.82rem;vertical-align:top;}
+.frv-table td:first-child{color:var(--muted);font-size:.74rem;width:38%;padding-right:12px;line-height:1.4;}
+.frv-table td:last-child{font-family:var(--mono);font-size:.76rem;word-break:break-all;color:var(--text);}
+
+/* LEVA */
+.leva-list{display:flex;flex-direction:column;gap:8px;}
+.leva-item{display:flex;align-items:flex-start;gap:10px;background:var(--surface2);border-radius:10px;padding:10px 14px;font-size:.81rem;line-height:1.45;border-left:3px solid transparent;}
+.leva-item.ok{border-left-color:var(--hot);}
+.leva-item.warn{border-left-color:var(--mild);}
+.leva-item.danger{border-left-color:var(--cold);}
+.leva-item.info{border-left-color:var(--accent2);}
+.leva-icon{flex-shrink:0;font-size:.95rem;}
+
+/* ALTERNATIVES */
+.alt-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+@media(max-width:560px){.alt-grid{grid-template-columns:1fr;}}
+.alt-item{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;cursor:pointer;transition:border-color .15s;}
+.alt-item:hover{border-color:var(--accent);}
+.alt-name{font-size:.82rem;font-weight:600;margin-bottom:2px;}
+.alt-url{font-family:var(--mono);font-size:.68rem;color:var(--accent);margin-bottom:4px;}
+.alt-desc{font-size:.74rem;color:var(--muted);line-height:1.4;}
+.alt-score{font-family:var(--mono);font-size:.72rem;padding:2px 8px;border-radius:6px;display:inline-block;margin-top:6px;}
+
+/* ACTIONS */
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:4px;}
+
+/* HISTORY */
+#historySec{margin-top:32px;display:none;}
+.history-item{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:11px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:border-color .15s;margin-bottom:7px;font-size:.81rem;}
+.history-item:hover{border-color:var(--accent);}
+.h-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.h-url{flex:1;font-family:var(--mono);color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.72rem;}
+.h-score{font-family:var(--mono);font-weight:700;font-size:.85rem;}
+
+/* EMPTY */
+#empty{text-align:center;padding:56px 20px;border:1px dashed var(--border);border-radius:20px;}
+.empty-icon{font-size:2.8rem;margin-bottom:12px;}
+.empty-txt{font-family:var(--mono);color:var(--muted);font-size:.82rem;}
+
+/* ZONE COLORS */
+.c-hot{color:var(--hot);} .c-warm{color:var(--warm);} .c-mild{color:var(--mild);} .c-cold{color:var(--cold);}
+.bg-hot{background:rgba(0,212,170,.08);border:1px solid rgba(0,212,170,.25);}
+.bg-warm{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.25);}
+.bg-mild{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);}
+.bg-cold{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);}
+.badge-hot{background:rgba(0,212,170,.15);color:var(--hot);}
+.badge-warm{background:rgba(59,130,246,.15);color:#60a5fa;}
+.badge-mild{background:rgba(245,158,11,.15);color:#fbbf24;}
+.badge-cold{background:rgba(239,68,68,.15);color:#f87171;}
+
+footer{text-align:center;color:var(--muted);font-size:.7rem;font-family:var(--mono);padding-top:40px;}
+
+/* QUESTIONNAIRE */
+.q-option{display:flex;align-items:center;gap:12px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 16px;cursor:pointer;transition:all .15s;text-align:left;width:100%;}
+.q-option:hover{border-color:var(--accent2);}
+.q-option.selected{border-color:var(--accent);background:rgba(0,212,170,.08);}
+.q-opt-icon{font-size:1.1rem;flex-shrink:0;}
+.q-opt-label{font-size:.82rem;color:var(--text);line-height:1.3;}
+
+/* AI RESULT */
+.ai-box{background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.25);border-radius:14px;padding:18px 20px;margin-bottom:20px;}
+.ai-box pre{font-family:var(--sans);font-size:.82rem;white-space:pre-wrap;line-height:1.6;color:var(--text);}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- HEADER -->
+<header>
+  <div class="hd-badge"><span>🔬 CEIPA · Laboratorio de Datos</span></div>
+  <div class="hd-title">Data<em>Verif</em> <span style="font-size:1rem;opacity:.4">v3.0</span></div>
+  <div class="hd-sub">+70 fuentes reconocidas · Revistas científicas · Bases académicas · Repositorios universitarios · Medios verificados · TCD · FRV · LEVA</div>
+</header>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('auto')">🔗 Verificación por URL</button>
+  <button class="tab" onclick="switchTab('manual')">✏️ Evaluación Manual</button>
+</div>
+
+<!-- AUTO TAB -->
+<div id="tabAuto">
+  <div class="card card-accent">
+    <span class="lbl">→ URL de la fuente de datos</span>
+    <div class="input-row">
+      <input class="inp" id="urlInput" type="url" placeholder="https://www.dane.gov.co/dataset/..." onkeydown="if(event.key==='Enter')analyze()">
+      <button class="btn btn-primary" onclick="analyze()">ANALIZAR →</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;">
+      <div>
+        <input class="inp inp-sm" id="analystName" placeholder="Nombre del analista" style="width:100%">
+      </div>
+      <div>
+        <input class="inp inp-sm" id="projectName" placeholder="Nombre del proyecto" style="width:100%">
+      </div>
+    </div>
+    <div class="quick-row">
+      <span class="q-lbl">Fuentes ejemplo:</span>
+      <button class="q-btn" onclick="setEx('https://www.dane.gov.co')">DANE</button>
+      <button class="q-btn" onclick="setEx('https://www.who.int')">OMS</button>
+      <button class="q-btn" onclick="setEx('https://datos.gov.co')">Datos Gov CO</button>
+      <button class="q-btn" onclick="setEx('https://stats.oecd.org')">OCDE</button>
+      <button class="q-btn" onclick="setEx('https://www.worldbank.org')">Banco Mundial</button>
+      <button class="q-btn" onclick="setEx('https://ourworldindata.org')">OWID</button>
+      <button class="q-btn" onclick="setEx('https://noticias-random.blogspot.com')">Blog anónimo ⚠️</button>
+    </div>
+    <div class="quick-row">
+      <span class="q-lbl">Revistas científicas:</span>
+      <button class="q-btn" onclick="setEx('https://www.nature.com')">Nature 🔬</button>
+      <button class="q-btn" onclick="setEx('https://www.thelancet.com')">The Lancet 🔬</button>
+      <button class="q-btn" onclick="setEx('https://journals.plos.org')">PLOS 🔬</button>
+      <button class="q-btn" onclick="setEx('https://www.mdpi.com')">MDPI 🔬</button>
+    </div>
+    <div class="quick-row">
+      <span class="q-lbl">Bases académicas:</span>
+      <button class="q-btn" onclick="setEx('https://pubmed.ncbi.nlm.nih.gov')">PubMed 📚</button>
+      <button class="q-btn" onclick="setEx('https://www.scielo.org.co')">SciELO Colombia 📚</button>
+      <button class="q-btn" onclick="setEx('https://www.jstor.org')">JSTOR 📚</button>
+      <button class="q-btn" onclick="setEx('https://scholar.google.com')">Google Scholar 📚</button>
+    </div>
+    <div class="quick-row">
+      <span class="q-lbl">Repositorios universitarios:</span>
+      <button class="q-btn" onclick="setEx('https://repositorio.unal.edu.co')">UNAL 🎓</button>
+      <button class="q-btn" onclick="setEx('https://www.uniandes.edu.co')">Uniandes 🎓</button>
+      <button class="q-btn" onclick="setEx('https://repository.ceipa.edu.co')">CEIPA 🎓</button>
+    </div>
+    <div class="quick-row">
+      <span class="q-lbl">Medios verificados:</span>
+      <button class="q-btn" onclick="setEx('https://www.eltiempo.com')">El Tiempo 📰</button>
+      <button class="q-btn" onclick="setEx('https://www.bbc.com')">BBC 📰</button>
+      <button class="q-btn" onclick="setEx('https://www.reuters.com')">Reuters 📰</button>
+      <button class="q-btn" onclick="setEx('https://www.elespectador.com')">El Espectador 📰</button>
+    </div>
+  </div>
+</div>
+
+<!-- MANUAL TAB -->
+<div id="tabManual" style="display:none">
+  <div class="card card-accent" id="manualPanel">
+    <span class="lbl">→ Evaluación Manual por Criterio (cuando no tienes URL o la fuente no es digital)</span>
+    <div class="analyst-grid">
+      <input class="inp inp-sm" id="mSourceName" placeholder="Nombre de la fuente *">
+      <input class="inp inp-sm" id="mSourceURL" placeholder="URL o ruta (opcional)">
+      <input class="inp inp-sm" id="mAnalyst" placeholder="Nombre del analista">
+      <input class="inp inp-sm" id="mProject" placeholder="Nombre del proyecto">
+    </div>
+    <div class="score-grid" id="manualSliders"></div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+      <button class="btn btn-primary" onclick="analyzeManual()">CALCULAR TCD →</button>
+      <span style="font-family:var(--mono);font-size:.75rem;color:var(--muted)">Total: <span id="manualTotal" style="color:var(--accent)">0</span> / 100</span>
+    </div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div id="loading">
+  <div class="spin"></div>
+  <div style="font-family:var(--mono);font-size:.82rem;color:var(--muted);margin-bottom:12px;">Analizando fuente de datos...</div>
+  <div id="stepsList"></div>
+</div>
+
+<!-- RESULTS -->
+<div id="results">
+
+  <!-- THERMO HERO -->
+  <div class="card card-accent" id="heroCard">
+    <span class="lbl">Resultado · Termómetro de Credibilidad (TCD)</span>
+    <div class="hero">
+      <div class="thermo-wrap">
+        <svg width="56" height="170" viewBox="0 0 56 170">
+          <defs><linearGradient id="tg" x1="0" y1="1" x2="0" y2="0">
+            <stop offset="0%" stop-color="#ef4444"/>
+            <stop offset="35%" stop-color="#f59e0b"/>
+            <stop offset="65%" stop-color="#3b82f6"/>
+            <stop offset="100%" stop-color="#00d4aa"/>
+          </linearGradient></defs>
+          <rect x="20" y="16" width="16" height="112" rx="8" fill="#0f1420"/>
+          <rect x="20" id="tFill" y="128" width="16" height="0" rx="8" fill="url(#tg)"/>
+          <circle cx="28" cy="144" r="13" fill="#0f1420"/>
+          <circle cx="28" cy="144" r="9" id="tBulb" fill="#ef4444"/>
+          <line x1="36" y1="24" x2="42" y2="24" stroke="#1e2d45" stroke-width="1.5"/>
+          <line x1="36" y1="52" x2="42" y2="52" stroke="#1e2d45" stroke-width="1.5"/>
+          <line x1="36" y1="80" x2="42" y2="80" stroke="#1e2d45" stroke-width="1.5"/>
+          <line x1="36" y1="108" x2="42" y2="108" stroke="#1e2d45" stroke-width="1.5"/>
+          <text x="44" y="27" fill="#475569" font-size="7" font-family="Space Mono">100</text>
+          <text x="44" y="55" fill="#475569" font-size="7" font-family="Space Mono">75</text>
+          <text x="44" y="83" fill="#475569" font-size="7" font-family="Space Mono">50</text>
+          <text x="44" y="111" fill="#475569" font-size="7" font-family="Space Mono">25</text>
+        </svg>
+        <div class="t-score" id="scoreNum">--</div>
+        <div class="t-zone-badge badge" id="zoneBadge">--</div>
+      </div>
+      <div class="hero-info">
+        <h2 id="srcTitle">--</h2>
+        <div class="hero-url" id="srcURL">--</div>
+        <div class="verdict" id="verdictBox">--</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DIMENSIONS -->
+  <span class="lbl-muted" style="margin-bottom:8px;display:block">📊 Desglose por Dimensión del TCD</span>
+  <div class="dims-grid" id="dimsGrid"></div>
+
+  <!-- FRV COMPLETE -->
+  <div class="card">
+    <span class="lbl">📋 Ficha de Ruta Verificada (FRV) — Completa</span>
+    <table class="frv-table" id="frvTable"></table>
+  </div>
+
+  <!-- LEVA — 7 CRITERIA -->
+  <div class="card">
+    <span class="lbl">⚠️ Lista de Verificación de Anomalías (LEVA) — 7 Criterios</span>
+    <div class="leva-list" id="levaList"></div>
+  </div>
+
+  <!-- ALTERNATIVES -->
+  <div class="card" id="altCard">
+    <span class="lbl">🔄 Fuentes Alternativas Recomendadas</span>
+    <div id="altIntro" style="font-size:.82rem;color:var(--muted);margin-bottom:14px;"></div>
+    <div class="alt-grid" id="altGrid"></div>
+  </div>
+
+  <!-- AI VERIFICATION RESULT -->
+  <div id="aiResultCard" class="ai-box" style="display:none">
+    <span class="lbl" style="color:#60a5fa">🤖 Verificación con IA</span>
+    <pre id="aiResultText"></pre>
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="actions">
+    <button class="btn btn-primary btn-sm" onclick="downloadReport()">⬇ Descargar Reporte Completo</button>
+    <button class="btn btn-ghost btn-sm" onclick="copyFRV()">📋 Copiar FRV</button>
+    <button class="btn btn-ghost btn-sm" onclick="resetApp()">← Nueva Fuente</button>
+  </div>
+</div>
+
+<!-- QUESTIONNAIRE PANEL -->
+<div id="questionnairePanel" style="display:none">
+  <div class="card card-accent">
+    <span class="lbl">🔍 Fuente no reconocida — Cuestionario Inteligente de Evaluación</span>
+    <div style="font-size:.8rem;color:var(--muted);margin-bottom:14px;">La herramienta no tiene esta fuente en su base de datos. Responde las siguientes preguntas mirando la página para calcular su puntaje TCD correctamente.</div>
+    <div style="font-family:var(--mono);font-size:.7rem;color:var(--accent);margin-bottom:8px;">URL analizada:</div>
+    <div id="urlPreviewQ" style="font-family:var(--mono);font-size:.72rem;color:var(--muted);word-break:break-all;margin-bottom:16px;padding:8px 12px;background:var(--bg);border-radius:8px;border:1px solid var(--border)"></div>
+
+    <div style="margin-bottom:16px;">
+      <div style="font-family:var(--mono);font-size:.68rem;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;">⚡ Señales detectadas automáticamente:</div>
+      <div id="autoSignalsBox"></div>
+    </div>
+
+    <div style="margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <span style="font-family:var(--mono);font-size:.68rem;color:var(--accent);letter-spacing:1.5px;text-transform:uppercase;">Pregunta <span id="qCounter">1 / 7</span></span>
+      </div>
+      <div style="background:var(--bg);border-radius:4px;height:4px;overflow:hidden;margin-bottom:16px;">
+        <div id="qProgress" style="height:100%;background:var(--accent);border-radius:4px;width:0;transition:width .4s ease;"></div>
+      </div>
+      <div id="qTitle" style="font-size:.95rem;font-weight:600;margin-bottom:14px;line-height:1.4;"></div>
+      <div id="qOptions" style="display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:16px;">
+      <button id="qBack" class="btn btn-ghost btn-sm" style="display:none">← Anterior</button>
+      <button id="qNext" class="btn btn-primary btn-sm" style="display:none">SIGUIENTE →</button>
+    </div>
+  </div>
+</div>
+
+<!-- EMPTY -->
+<div id="empty">
+  <div class="empty-icon">🔍</div>
+  <div class="empty-txt">Ingresa una URL o usa la evaluación manual para comenzar</div>
+</div>
+
+<!-- HISTORY -->
+<div id="historySec">
+  <span class="lbl-muted" style="margin-bottom:10px;display:block">🕐 Historial de Fuentes Analizadas</span>
+  <div id="historyGrid"></div>
+</div>
+
+<footer>CEIPA Business School · Laboratorio de Datos · DataVerif v2.0<br>
+Instrumentos: TCD · FRV · LEVA · MFI · CRISP-DM</footer>
+</div>
+
+<script>
+// ─── DATA ────────────────────────────────────────────────────────────────────
+const DIMS = [
+  { key:'authority',     icon:'🏛️', name:'Autoridad de la fuente',       max:25,
+    note:'¿Quién publica? Gobierno, ONG, academia, privado o anónimo.',
+    criteria:'25=Gobierno/ONU · 20=Academia · 15=ONG · 10=Privado · 5=Autor desconocido' },
+  { key:'currency',      icon:'📅', name:'Actualización y vigencia',      max:20,
+    note:'¿Qué tan reciente es la información? ¿Se actualiza regularmente?',
+    criteria:'20=< 1 año · 15=1–2 años · 10=2–4 años · 5=4–6 años · 2=> 6 años' },
+  { key:'transparency',  icon:'📖', name:'Transparencia metodológica',    max:20,
+    note:'¿Documenta cómo recolecta y procesa los datos? ¿Tiene diccionario de datos?',
+    criteria:'20=Metodología completa+diccionario · 15=Parcial · 8=Resumen breve · 3=Sin doc.' },
+  { key:'replicability', icon:'🔁', name:'Replicabilidad',                max:20,
+    note:'¿Puedo acceder a los datos originales y verificarlos de forma independiente?',
+    criteria:'20=Datos abiertos descargables · 15=Acceso con registro · 8=Solo resúmenes · 3=Sin acceso' },
+  { key:'consistency',   icon:'📊', name:'Consistencia interna',          max:15,
+    note:'¿Los datos son coherentes? Sin duplicados, rangos válidos, formato limpio.',
+    criteria:'15=Sin anomalías · 10=Anomalías menores · 5=Varias inconsistencias · 0=Datos corruptos' },
+];
+
+const KNOWN = {
+  // ── FUENTES OFICIALES COLOMBIA ─────────────────────────────────────────────
+  'dane.gov.co':            { name:'DANE', full:'DANE – Departamento Nacional de Estadística', org:'Gobierno de Colombia', cat:'Estadística oficial nacional', lic:'Libre uso con atribución', upd:'Continua', fmt:'CSV, Excel, API, XLSX', reg:false, sec:'https', obs:'Principal fuente estadística oficial de Colombia. Alta confiabilidad.', scores:{authority:25,currency:20,transparency:20,replicability:18,consistency:15} },
+  'datos.gov.co':           { name:'Datos Gov CO', full:'Portal Datos Abiertos – Colombia', org:'MinTIC / Gobierno de Colombia', cat:'Datos abiertos del Estado colombiano', lic:'Dominio público – libre uso', upd:'Variable por dataset', fmt:'CSV, JSON, XML, XLSX', reg:false, sec:'https', obs:'Repositorio oficial de datos abiertos del Estado. La calidad varía por entidad.', scores:{authority:25,currency:17,transparency:18,replicability:20,consistency:13} },
+  'banrep.gov.co':          { name:'Banco de la República', full:'Banco de la República de Colombia', org:'Banco de la República', cat:'Finanzas y economía de Colombia', lic:'Libre uso no comercial', upd:'Diaria/Mensual', fmt:'XLSX, CSV', reg:false, sec:'https', obs:'Fuente oficial para datos financieros y económicos colombianos.', scores:{authority:25,currency:20,transparency:18,replicability:15,consistency:15} },
+  'mineducacion.gov.co':    { name:'MinEducación', full:'Ministerio de Educación Nacional de Colombia', org:'Gobierno de Colombia', cat:'Educación nacional', lic:'Libre uso con atribución', upd:'Anual', fmt:'XLSX, PDF', reg:false, sec:'https', obs:'Estadísticas oficiales educativas de Colombia.', scores:{authority:25,currency:16,transparency:16,replicability:14,consistency:13} },
+  'minsalud.gov.co':        { name:'MinSalud', full:'Ministerio de Salud de Colombia', org:'Gobierno de Colombia', cat:'Salud pública nacional', lic:'Libre uso con atribución', upd:'Periódica', fmt:'CSV, XLSX, PDF', reg:false, sec:'https', obs:'Datos de salud oficiales para Colombia.', scores:{authority:25,currency:17,transparency:17,replicability:14,consistency:13} },
+  'dnp.gov.co':             { name:'DNP', full:'Departamento Nacional de Planeación – Colombia', org:'Gobierno de Colombia', cat:'Planeación y políticas públicas', lic:'Libre uso con atribución', upd:'Periódica', fmt:'XLSX, PDF', reg:false, sec:'https', obs:'Informes de planeación nacional y evaluación de políticas públicas.', scores:{authority:25,currency:17,transparency:17,replicability:14,consistency:13} },
+  'cancilleria.gov.co':     { name:'Cancillería', full:'Cancillería de Colombia', org:'Gobierno de Colombia', cat:'Relaciones exteriores', lic:'Libre uso', upd:'Periódica', fmt:'PDF, XLSX', reg:false, sec:'https', obs:'Fuente oficial para datos de política exterior colombiana.', scores:{authority:24,currency:15,transparency:15,replicability:12,consistency:12} },
+  'superfinanciera.gov.co': { name:'Superfinanciera', full:'Superintendencia Financiera de Colombia', org:'Gobierno de Colombia', cat:'Regulación financiera', lic:'Libre uso', upd:'Mensual', fmt:'XLSX, CSV', reg:false, sec:'https', obs:'Datos del sistema financiero colombiano. Alta rigurosidad técnica.', scores:{authority:25,currency:19,transparency:18,replicability:15,consistency:14} },
+
+  // ── ORGANISMOS INTERNACIONALES ─────────────────────────────────────────────
+  'who.int':                { name:'OMS', full:'OMS – Organización Mundial de la Salud', org:'Naciones Unidas', cat:'Salud pública internacional', lic:'CC BY-NC-SA 3.0 IGO', upd:'Periódica', fmt:'CSV, JSON, API, PDF', reg:false, sec:'https', obs:'Fuente de referencia global en salud. Metodología documentada y revisada.', scores:{authority:25,currency:18,transparency:20,replicability:18,consistency:14} },
+  'stats.oecd.org':         { name:'OCDE Stats', full:'OCDE – Estadísticas', org:'OCDE', cat:'Estadística económica internacional', lic:'CC BY 4.0', upd:'Anual / Trimestral', fmt:'CSV, XLSX, JSON, API', reg:false, sec:'https', obs:'Alta calidad metodológica. Cubre países miembros de la OCDE.', scores:{authority:24,currency:19,transparency:19,replicability:18,consistency:14} },
+  'oecd.org':               { name:'OCDE', full:'OCDE – Organización para la Cooperación y el Desarrollo', org:'OCDE', cat:'Estadística económica internacional', lic:'CC BY 4.0', upd:'Anual', fmt:'CSV, XLSX, PDF', reg:false, sec:'https', obs:'Organismo internacional de referencia en políticas económicas y sociales.', scores:{authority:24,currency:18,transparency:19,replicability:17,consistency:14} },
+  'worldbank.org':          { name:'Banco Mundial', full:'Banco Mundial – Open Data', org:'Banco Mundial', cat:'Desarrollo económico global', lic:'CC BY 4.0', upd:'Anual', fmt:'CSV, XLSX, JSON, API', reg:false, sec:'https', obs:'Una de las fuentes más completas para indicadores de desarrollo mundial.', scores:{authority:24,currency:18,transparency:20,replicability:20,consistency:14} },
+  'ourworldindata.org':     { name:'Our World in Data', full:'Our World in Data – Oxford', org:'University of Oxford', cat:'Datos globales temáticos', lic:'CC BY 4.0', upd:'Continua', fmt:'CSV, XLSX, API', reg:false, sec:'https', obs:'Excelente documentación metodológica. Datos derivados de fuentes primarias.', scores:{authority:20,currency:19,transparency:20,replicability:20,consistency:14} },
+  'cepal.org':              { name:'CEPAL', full:'CEPAL – Comisión Económica para América Latina', org:'Naciones Unidas', cat:'Desarrollo económico latinoamericano', lic:'CC BY-NC-SA', upd:'Anual', fmt:'XLSX, PDF, API', reg:false, sec:'https', obs:'Referencia clave para datos de América Latina y el Caribe.', scores:{authority:23,currency:17,transparency:18,replicability:16,consistency:14} },
+  'imf.org':                { name:'FMI', full:'Fondo Monetario Internacional', org:'FMI', cat:'Economía y finanzas globales', lic:'Libre uso con atribución', upd:'Periódica', fmt:'CSV, XLSX, API', reg:false, sec:'https', obs:'Alta autoridad en datos macroeconómicos globales.', scores:{authority:23,currency:19,transparency:18,replicability:17,consistency:14} },
+  'data.un.org':            { name:'ONU Data', full:'Naciones Unidas – UN Data', org:'Naciones Unidas', cat:'Estadística mundial', lic:'Libre uso con atribución', upd:'Periódica', fmt:'CSV, XLSX', reg:false, sec:'https', obs:'Repositorio estadístico oficial de las Naciones Unidas.', scores:{authority:25,currency:17,transparency:18,replicability:18,consistency:13} },
+  'unicef.org':             { name:'UNICEF', full:'UNICEF – Fondo de las Naciones Unidas para la Infancia', org:'Naciones Unidas', cat:'Infancia y desarrollo social', lic:'CC BY', upd:'Anual', fmt:'CSV, XLSX, PDF', reg:false, sec:'https', obs:'Datos sobre infancia, educación y bienestar social a nivel global.', scores:{authority:23,currency:17,transparency:18,replicability:15,consistency:13} },
+  'undp.org':               { name:'PNUD', full:'PNUD – Programa de las Naciones Unidas para el Desarrollo', org:'Naciones Unidas', cat:'Desarrollo humano global', lic:'CC BY', upd:'Anual', fmt:'CSV, PDF', reg:false, sec:'https', obs:'Publica el Índice de Desarrollo Humano (IDH) y reportes de desarrollo.', scores:{authority:23,currency:17,transparency:18,replicability:15,consistency:13} },
+
+  // ── REVISTAS CIENTÍFICAS ───────────────────────────────────────────────────
+  'nature.com':             { name:'Nature', full:'Nature – Revista Científica (Springer Nature)', org:'Springer Nature', cat:'Revista científica multidisciplinar', lic:'Acceso restringido / Open Access parcial', upd:'Continua', fmt:'PDF, HTML', reg:true, sec:'https', obs:'Una de las revistas científicas más prestigiosas del mundo. Revisión por pares rigurosa. Puntaje alto por autoridad académica aunque requiere suscripción.', scores:{authority:25,currency:20,transparency:20,replicability:14,consistency:15} },
+  'science.org':            { name:'Science', full:'Science – AAAS (American Association for the Advancement of Science)', org:'AAAS', cat:'Revista científica multidisciplinar', lic:'Acceso restringido / Open Access parcial', upd:'Semanal', fmt:'PDF, HTML', reg:true, sec:'https', obs:'Segunda revista científica más influyente del mundo. Revisión por pares estricta.', scores:{authority:25,currency:20,transparency:20,replicability:14,consistency:15} },
+  'thelancet.com':          { name:'The Lancet', full:'The Lancet – Revista Médica Internacional', org:'Elsevier', cat:'Medicina y salud pública', lic:'Acceso restringido / Open Access parcial', upd:'Continua', fmt:'PDF, HTML', reg:true, sec:'https', obs:'Revista médica de máximo prestigio mundial. Referencia en salud pública global.', scores:{authority:25,currency:20,transparency:20,replicability:13,consistency:15} },
+  'nejm.org':               { name:'NEJM', full:'New England Journal of Medicine', org:'Massachusetts Medical Society', cat:'Medicina clínica', lic:'Acceso restringido', upd:'Semanal', fmt:'PDF, HTML', reg:true, sec:'https', obs:'La revista médica clínica más influyente a nivel mundial.', scores:{authority:25,currency:20,transparency:20,replicability:13,consistency:15} },
+  'cell.com':               { name:'Cell', full:'Cell – Revista de Biología Molecular', org:'Cell Press / Elsevier', cat:'Biología y ciencias de la vida', lic:'Open Access parcial', upd:'Continua', fmt:'PDF, HTML', reg:true, sec:'https', obs:'Publicación de referencia en biología molecular y ciencias de la vida.', scores:{authority:24,currency:20,transparency:19,replicability:13,consistency:14} },
+  'bmj.com':                { name:'BMJ', full:'British Medical Journal', org:'BMJ Publishing Group', cat:'Medicina y salud pública', lic:'Open Access parcial', upd:'Continua', fmt:'PDF, HTML', reg:false, sec:'https', obs:'Una de las cuatro grandes revistas médicas generales del mundo.', scores:{authority:24,currency:20,transparency:19,replicability:14,consistency:14} },
+  'journals.plos.org':      { name:'PLOS', full:'PLOS – Public Library of Science', org:'PLOS', cat:'Ciencia abierta multidisciplinar', lic:'CC BY 4.0 – Acceso abierto total', upd:'Continua', fmt:'PDF, HTML, XML', reg:false, sec:'https', obs:'Editorial de acceso abierto con revisión por pares. Todos los artículos son descargables libremente.', scores:{authority:22,currency:20,transparency:20,replicability:20,consistency:14} },
+  'plos.org':               { name:'PLOS', full:'PLOS – Public Library of Science', org:'PLOS', cat:'Ciencia abierta multidisciplinar', lic:'CC BY 4.0', upd:'Continua', fmt:'PDF, HTML', reg:false, sec:'https', obs:'Acceso abierto total. Alta transparencia y replicabilidad.', scores:{authority:22,currency:20,transparency:20,replicability:20,consistency:14} },
+  'frontiersin.org':        { name:'Frontiers', full:'Frontiers – Revistas Científicas Open Access', org:'Frontiers Media SA', cat:'Ciencias multidisciplinares', lic:'CC BY 4.0', upd:'Continua', fmt:'PDF, HTML', reg:false, sec:'https', obs:'Editorial de acceso abierto con revisión por pares. Alta replicabilidad por políticas de datos abiertos.', scores:{authority:20,currency:20,transparency:18,replicability:19,consistency:13} },
+  'springer.com':           { name:'Springer', full:'Springer – Editorial Científica', org:'Springer Nature', cat:'Publicaciones académicas multidisciplinares', lic:'Acceso restringido / Open Access parcial', upd:'Continua', fmt:'PDF, HTML', reg:true, sec:'https', obs:'Una de las editoriales académicas más grandes del mundo. Alta revisión por pares.', scores:{authority:22,currency:19,transparency:18,replicability:13,consistency:14} },
+  'link.springer.com':      { name:'Springer Link', full:'SpringerLink – Artículos Científicos', org:'Springer Nature', cat:'Publicaciones académicas', lic:'Acceso restringido / Open Access parcial', upd:'Continua', fmt:'PDF, HTML', reg:true, sec:'https', obs:'Plataforma de Springer. Alta autoridad académica con revisión por pares.', scores:{authority:22,currency:19,transparency:18,replicability:13,consistency:14} },
+  'wiley.com':              { name:'Wiley', full:'Wiley – Editorial Científica', org:'John Wiley & Sons', cat:'Publicaciones científicas y técnicas', lic:'Acceso restringido', upd:'Continua', fmt:'PDF, HTML', reg:true, sec:'https', obs:'Editorial científica de alto prestigio. Publica más de 1.700 revistas académicas.', scores:{authority:22,currency:19,transparency:18,replicability:13,consistency:14} },
+  'elsevier.com':           { name:'Elsevier', full:'Elsevier – Editorial Científica', org:'Elsevier / RELX', cat:'Publicaciones científicas multidisciplinares', lic:'Acceso restringido / Open Access parcial', upd:'Continua', fmt:'PDF, HTML', reg:true, sec:'https', obs:'La editorial científica más grande del mundo. Publica Nature, Lancet, y miles de revistas.', scores:{authority:22,currency:19,transparency:18,replicability:13,consistency:14} },
+  'tandfonline.com':        { name:'Taylor & Francis', full:'Taylor & Francis – Revistas Académicas', org:'Taylor & Francis Group', cat:'Humanidades, sociales y ciencias', lic:'Acceso restringido / Open Access parcial', upd:'Continua', fmt:'PDF, HTML', reg:true, sec:'https', obs:'Editorial académica con amplia cobertura en ciencias sociales y humanas.', scores:{authority:21,currency:18,transparency:17,replicability:12,consistency:13} },
+  'sagepub.com':            { name:'SAGE', full:'SAGE Publications – Revistas Académicas', org:'SAGE Publishing', cat:'Ciencias sociales y salud', lic:'Acceso restringido / Open Access parcial', upd:'Continua', fmt:'PDF, HTML', reg:true, sec:'https', obs:'Editorial especializada en ciencias sociales, humanidades y ciencias de la salud.', scores:{authority:21,currency:18,transparency:17,replicability:12,consistency:13} },
+  'mdpi.com':               { name:'MDPI', full:'MDPI – Multidisciplinary Digital Publishing Institute', org:'MDPI AG', cat:'Revistas científicas Open Access', lic:'CC BY 4.0', upd:'Continua', fmt:'PDF, HTML, XML', reg:false, sec:'https', obs:'Editorial Open Access de alto volumen. Revisión por pares rápida. Verificar factor de impacto de la revista específica.', scores:{authority:18,currency:20,transparency:17,replicability:19,consistency:12} },
+
+  // ── BASES DE DATOS ACADÉMICAS ──────────────────────────────────────────────
+  'scielo.org':             { name:'SciELO', full:'SciELO – Scientific Electronic Library Online', org:'FAPESP / OPS / CNPq', cat:'Base de datos académica latinoamericana', lic:'Acceso abierto', upd:'Continua', fmt:'PDF, HTML, XML', reg:false, sec:'https', obs:'Principal base de datos de revistas científicas latinoamericanas. Revisión por pares. Muy relevante para estudios en Colombia y la región.', scores:{authority:22,currency:19,transparency:19,replicability:20,consistency:14} },
+  'scielo.org.co':          { name:'SciELO Colombia', full:'SciELO Colombia – Revistas Científicas Colombianas', org:'Colciencias / MinCiencias Colombia', cat:'Revistas científicas colombianas', lic:'Acceso abierto', upd:'Continua', fmt:'PDF, HTML', reg:false, sec:'https', obs:'Colección colombiana de SciELO. Artículos de universidades e institutos colombianos con revisión por pares.', scores:{authority:22,currency:19,transparency:19,replicability:20,consistency:14} },
+  'ncbi.nlm.nih.gov':       { name:'PubMed / NCBI', full:'PubMed – National Center for Biotechnology Information', org:'NIH – Institutos Nacionales de Salud (EE.UU.)', cat:'Base de datos biomédica', lic:'Acceso abierto', upd:'Diaria', fmt:'PDF, HTML, XML', reg:false, sec:'https', obs:'La base de datos biomédica más completa del mundo. Más de 35 millones de artículos indexados con revisión por pares.', scores:{authority:25,currency:20,transparency:20,replicability:20,consistency:15} },
+  'pubmed.ncbi.nlm.nih.gov':{ name:'PubMed', full:'PubMed – Base de Datos Biomédica', org:'NIH – Institutos Nacionales de Salud (EE.UU.)', cat:'Base de datos biomédica', lic:'Acceso abierto', upd:'Diaria', fmt:'PDF, HTML', reg:false, sec:'https', obs:'La base de datos médica más importante del mundo. Estándar de referencia para investigación en salud.', scores:{authority:25,currency:20,transparency:20,replicability:20,consistency:15} },
+  'jstor.org':              { name:'JSTOR', full:'JSTOR – Journal Storage', org:'ITHAKA', cat:'Archivo de revistas académicas', lic:'Acceso restringido / Open Access parcial', upd:'Continua', fmt:'PDF', reg:true, sec:'https', obs:'Archivo de revistas académicas históricas y actuales. Alta calidad. Muchas universidades colombianas tienen acceso.', scores:{authority:22,currency:15,transparency:18,replicability:14,consistency:14} },
+  'scholar.google.com':     { name:'Google Scholar', full:'Google Scholar – Buscador Académico', org:'Google', cat:'Buscador de literatura científica', lic:'Varía por fuente', upd:'Continua', fmt:'PDF, HTML', reg:false, sec:'https', obs:'Buscador académico. No es una fuente primaria sino un índice. Siempre ir a la fuente original del artículo.', scores:{authority:15,currency:20,transparency:12,replicability:15,consistency:11} },
+  'researchgate.net':       { name:'ResearchGate', full:'ResearchGate – Red Social Científica', org:'ResearchGate GmbH', cat:'Red académica y repositorio de artículos', lic:'Varía por artículo', upd:'Continua', fmt:'PDF', reg:true, sec:'https', obs:'Plataforma donde investigadores comparten artículos. La calidad depende del artículo. Ir siempre a la fuente original de la revista.', scores:{authority:15,currency:18,transparency:12,replicability:15,consistency:11} },
+  'scopus.com':             { name:'Scopus', full:'Scopus – Base de Datos Bibliográfica', org:'Elsevier', cat:'Base de datos de literatura científica', lic:'Acceso restringido (suscripción)', upd:'Diaria', fmt:'PDF, CSV, XLSX', reg:true, sec:'https', obs:'Una de las dos bases de datos de indexación científica más grandes del mundo. Solo acceso por suscripción institucional.', scores:{authority:24,currency:20,transparency:19,replicability:16,consistency:15} },
+  'webofscience.com':       { name:'Web of Science', full:'Web of Science – Clarivate', org:'Clarivate Analytics', cat:'Base de datos de indexación científica', lic:'Acceso restringido', upd:'Diaria', fmt:'CSV, XLSX', reg:true, sec:'https', obs:'La base de datos de indexación más antigua y prestigiosa. Estándar para medir impacto científico.', scores:{authority:24,currency:20,transparency:19,replicability:15,consistency:15} },
+  'dialnet.unirioja.es':    { name:'Dialnet', full:'Dialnet – Portal de Difusión Científica Hispana', org:'Universidad de La Rioja', cat:'Literatura científica en español', lic:'Acceso abierto parcial', upd:'Continua', fmt:'PDF, HTML', reg:false, sec:'https', obs:'El mayor portal de literatura científica hispana. Especialmente útil para artículos en español sobre ciencias sociales.', scores:{authority:20,currency:18,transparency:17,replicability:17,consistency:13} },
+  'redalyc.org':            { name:'Redalyc', full:'Redalyc – Red de Revistas Científicas', org:'UAEM – México', cat:'Revistas científicas iberoamericanas', lic:'CC BY-NC-ND', upd:'Continua', fmt:'PDF, HTML, XML', reg:false, sec:'https', obs:'Red de revistas académicas de América Latina, el Caribe, España y Portugal. Acceso abierto total.', scores:{authority:20,currency:18,transparency:18,replicability:19,consistency:13} },
+  'eric.ed.gov':            { name:'ERIC', full:'ERIC – Education Resources Information Center', org:'Departamento de Educación de EE.UU.', cat:'Literatura científica en educación', lic:'Acceso abierto', upd:'Continua', fmt:'PDF, HTML', reg:false, sec:'https', obs:'Base de datos de referencia mundial para investigación en educación.', scores:{authority:23,currency:18,transparency:19,replicability:18,consistency:14} },
+  'ssrn.com':               { name:'SSRN', full:'SSRN – Social Science Research Network', org:'Elsevier', cat:'Preprints en ciencias sociales', lic:'Acceso abierto', upd:'Continua', fmt:'PDF', reg:false, sec:'https', obs:'Repositorio de preprints en economía, derecho y ciencias sociales. Los artículos aún no tienen revisión por pares formal.', scores:{authority:18,currency:20,transparency:15,replicability:18,consistency:12} },
+  'arxiv.org':              { name:'arXiv', full:'arXiv – Repositorio de Preprints Científicos', org:'Cornell University', cat:'Preprints en ciencias exactas y computación', lic:'CC BY / Libre acceso', upd:'Diaria', fmt:'PDF, HTML', reg:false, sec:'https', obs:'Repositorio de preprints en física, matemáticas, computación y economía. Sin revisión por pares formal pero con alta autoridad en su comunidad.', scores:{authority:20,currency:20,transparency:17,replicability:20,consistency:13} },
+  'zenodo.org':             { name:'Zenodo', full:'Zenodo – Repositorio de Datos Científicos', org:'CERN / OpenAIRE', cat:'Repositorio abierto de datos y publicaciones', lic:'CC BY / Varía', upd:'Continua', fmt:'CSV, XLSX, PDF, JSON', reg:false, sec:'https', obs:'Repositorio de datos de investigación patrocinado por el CERN. Alta replicabilidad por política de datos abiertos.', scores:{authority:21,currency:20,transparency:18,replicability:20,consistency:13} },
+
+  // ── REPOSITORIOS UNIVERSITARIOS ────────────────────────────────────────────
+  'repositorio.unal.edu.co':{ name:'Repositorio UNAL', full:'Repositorio Institucional – Universidad Nacional de Colombia', org:'Universidad Nacional de Colombia', cat:'Repositorio académico universitario', lic:'CC BY-NC / Varía', upd:'Continua', fmt:'PDF', reg:false, sec:'https', obs:'Repositorio oficial de la Universidad Nacional de Colombia. Tesis, artículos y documentos académicos con respaldo institucional.', scores:{authority:22,currency:18,transparency:17,replicability:17,consistency:13} },
+  'repository.urosario.edu.co':{ name:'Repositorio U. Rosario', full:'Repositorio Institucional – Universidad del Rosario', org:'Universidad del Rosario', cat:'Repositorio académico universitario', lic:'CC BY-NC', upd:'Continua', fmt:'PDF', reg:false, sec:'https', obs:'Repositorio de la Universidad del Rosario. Contiene tesis, artículos y documentos de trabajo.', scores:{authority:21,currency:17,transparency:16,replicability:16,consistency:12} },
+  'repository.javeriana.edu.co':{ name:'Repositorio Javeriana', full:'Repositorio Institucional – Pontificia Universidad Javeriana', org:'Pontificia Universidad Javeriana', cat:'Repositorio académico universitario', lic:'CC BY-NC', upd:'Continua', fmt:'PDF', reg:false, sec:'https', obs:'Repositorio de la Universidad Javeriana. Fuente confiable para investigación académica colombiana.', scores:{authority:21,currency:17,transparency:16,replicability:16,consistency:12} },
+  'repository.udem.edu.co': { name:'Repositorio UdeM', full:'Repositorio Institucional – Universidad de Medellín', org:'Universidad de Medellín', cat:'Repositorio académico universitario', lic:'CC BY-NC', upd:'Continua', fmt:'PDF', reg:false, sec:'https', obs:'Repositorio académico de la Universidad de Medellín.', scores:{authority:19,currency:16,transparency:15,replicability:15,consistency:12} },
+  'intellectum.unisabana.edu.co':{ name:'Repositorio Sabana', full:'Intellectum – Universidad de La Sabana', org:'Universidad de La Sabana', cat:'Repositorio académico universitario', lic:'CC BY-NC', upd:'Continua', fmt:'PDF', reg:false, sec:'https', obs:'Repositorio institucional de la Universidad de La Sabana.', scores:{authority:19,currency:16,transparency:15,replicability:15,consistency:12} },
+  'repository.ceipa.edu.co':{ name:'Repositorio CEIPA', full:'Repositorio Institucional – CEIPA Business School', org:'CEIPA Business School', cat:'Repositorio académico universitario', lic:'CC BY-NC', upd:'Continua', fmt:'PDF', reg:false, sec:'https', obs:'Repositorio institucional de CEIPA. Fuente válida para proyectos del laboratorio de datos.', scores:{authority:19,currency:17,transparency:15,replicability:15,consistency:12} },
+  'harvard.edu':            { name:'Harvard', full:'Harvard University', org:'Universidad de Harvard', cat:'Universidad de investigación', lic:'Varía', upd:'Continua', fmt:'PDF, CSV, XLSX', reg:false, sec:'https', obs:'Una de las universidades más prestigiosas del mundo. Alto puntaje de autoridad académica.', scores:{authority:24,currency:18,transparency:18,replicability:16,consistency:14} },
+  'mit.edu':                { name:'MIT', full:'Massachusetts Institute of Technology', org:'MIT', cat:'Universidad de investigación tecnológica', lic:'Varía / Open Access parcial', upd:'Continua', fmt:'PDF, CSV', reg:false, sec:'https', obs:'Universidad de referencia global en tecnología e innovación.', scores:{authority:24,currency:18,transparency:18,replicability:16,consistency:14} },
+  'stanford.edu':           { name:'Stanford', full:'Stanford University', org:'Stanford University', cat:'Universidad de investigación', lic:'Varía', upd:'Continua', fmt:'PDF, CSV', reg:false, sec:'https', obs:'Universidad de alto prestigio global. Investigación de referencia en múltiples disciplinas.', scores:{authority:24,currency:18,transparency:18,replicability:16,consistency:14} },
+  'uniandes.edu.co':        { name:'Uniandes', full:'Universidad de los Andes – Colombia', org:'Universidad de los Andes', cat:'Universidad de investigación colombiana', lic:'CC BY-NC / Varía', upd:'Continua', fmt:'PDF', reg:false, sec:'https', obs:'Universidad de investigación líder en Colombia. Alta autoridad académica nacional.', scores:{authority:22,currency:17,transparency:16,replicability:15,consistency:13} },
+  'udea.edu.co':            { name:'U. de Antioquia', full:'Universidad de Antioquia', org:'Universidad de Antioquia', cat:'Universidad pública de investigación', lic:'CC BY-NC', upd:'Continua', fmt:'PDF', reg:false, sec:'https', obs:'Universidad pública de referencia en Colombia. Repositorio institucional de alto valor académico.', scores:{authority:22,currency:17,transparency:16,replicability:15,consistency:13} },
+  'eafit.edu.co':           { name:'EAFIT', full:'Universidad EAFIT', org:'Universidad EAFIT', cat:'Universidad de investigación en negocios', lic:'CC BY-NC', upd:'Continua', fmt:'PDF', reg:false, sec:'https', obs:'Universidad líder en negocios e ingeniería en Colombia.', scores:{authority:21,currency:17,transparency:16,replicability:15,consistency:12} },
+
+  // ── MEDIOS DE COMUNICACIÓN VERIFICADOS ────────────────────────────────────
+  'eltiempo.com':           { name:'El Tiempo', full:'El Tiempo – Diario Nacional de Colombia', org:'Casa Editorial El Tiempo', cat:'Periodismo verificado – Colombia', lic:'Derechos reservados', upd:'Continua', fmt:'HTML, PDF', reg:false, sec:'https', obs:'El diario de mayor circulación en Colombia. Fuente válida para contexto periodístico. No reemplaza fuentes primarias de datos.', scores:{authority:18,currency:20,transparency:14,replicability:10,consistency:12} },
+  'elespectador.com':       { name:'El Espectador', full:'El Espectador – Diario Nacional de Colombia', org:'Grupo Gilinski', cat:'Periodismo verificado – Colombia', lic:'Derechos reservados', upd:'Continua', fmt:'HTML', reg:false, sec:'https', obs:'Diario colombiano con más de 130 años de historia. Fuente periodística confiable para contexto noticioso.', scores:{authority:17,currency:20,transparency:13,replicability:10,consistency:12} },
+  'semana.com':             { name:'Semana', full:'Semana – Revista de Actualidad Colombiana', org:'Publicaciones Semana', cat:'Periodismo de análisis – Colombia', lic:'Derechos reservados', upd:'Continua', fmt:'HTML', reg:false, sec:'https', obs:'Revista de análisis político y económico colombiano. Útil como contexto noticioso. No es fuente primaria de datos.', scores:{authority:17,currency:20,transparency:13,replicability:9,consistency:11} },
+  'portafolio.co':          { name:'Portafolio', full:'Portafolio – Diario Económico de Colombia', org:'Casa Editorial El Tiempo', cat:'Periodismo económico – Colombia', lic:'Derechos reservados', upd:'Continua', fmt:'HTML', reg:false, sec:'https', obs:'Principal medio de información económica y empresarial de Colombia.', scores:{authority:17,currency:20,transparency:13,replicability:9,consistency:11} },
+  'larepublica.co':         { name:'La República', full:'La República – Diario Económico', org:'La República S.A.S.', cat:'Periodismo económico – Colombia', lic:'Derechos reservados', upd:'Continua', fmt:'HTML', reg:false, sec:'https', obs:'Diario especializado en economía y negocios colombianos.', scores:{authority:16,currency:20,transparency:12,replicability:9,consistency:11} },
+  'bbc.com':                { name:'BBC', full:'BBC – British Broadcasting Corporation', org:'BBC (Corporación pública del Reino Unido)', cat:'Periodismo internacional verificado', lic:'Derechos reservados', upd:'Continua', fmt:'HTML', reg:false, sec:'https', obs:'Medio de comunicación público del Reino Unido. Estándares editoriales muy altos. Fuente periodística confiable pero no primaria.', scores:{authority:20,currency:20,transparency:16,replicability:10,consistency:13} },
+  'reuters.com':            { name:'Reuters', full:'Reuters – Agencia de Noticias Internacional', org:'Thomson Reuters', cat:'Agencia de noticias internacional', lic:'Derechos reservados', upd:'Continua', fmt:'HTML', reg:false, sec:'https', obs:'Una de las agencias de noticias más confiables del mundo. Alta rigurosidad editorial y verificación de datos.', scores:{authority:20,currency:20,transparency:16,replicability:10,consistency:14} },
+  'apnews.com':             { name:'AP News', full:'Associated Press – Agencia de Noticias', org:'Associated Press', cat:'Agencia de noticias internacional', lic:'Derechos reservados', upd:'Continua', fmt:'HTML', reg:false, sec:'https', obs:'Agencia de noticias sin fines de lucro con más de 170 años. Alta credibilidad editorial.', scores:{authority:20,currency:20,transparency:16,replicability:10,consistency:14} },
+  'nytimes.com':            { name:'New York Times', full:'The New York Times', org:'The New York Times Company', cat:'Periodismo internacional verificado', lic:'Acceso parcial', upd:'Continua', fmt:'HTML', reg:true, sec:'https', obs:'Uno de los diarios más influyentes del mundo. Departamento de datos y periodismo de investigación reconocido.', scores:{authority:19,currency:20,transparency:15,replicability:10,consistency:13} },
+  'theguardian.com':        { name:'The Guardian', full:'The Guardian – Diario Británico', org:'Guardian Media Group', cat:'Periodismo internacional verificado', lic:'Acceso abierto', upd:'Continua', fmt:'HTML', reg:false, sec:'https', obs:'Diario británico con periodismo de datos reconocido internacionalmente.', scores:{authority:19,currency:20,transparency:15,replicability:11,consistency:13} },
+  'economist.com':          { name:'The Economist', full:'The Economist – Revista Internacional', org:'The Economist Group', cat:'Análisis económico internacional', lic:'Acceso restringido', upd:'Semanal', fmt:'HTML, PDF', reg:true, sec:'https', obs:'Publicación de análisis económico y político de alto prestigio. Datos propios con metodología documentada.', scores:{authority:20,currency:19,transparency:16,replicability:11,consistency:14} },
+
+  // ── PLATAFORMAS DE DATOS ───────────────────────────────────────────────────
+  'kaggle.com':             { name:'Kaggle', full:'Kaggle – Google', org:'Google / Comunidad', cat:'Plataforma de datasets científicos', lic:'Varía por dataset', upd:'Variable', fmt:'CSV, JSON, XLSX', reg:true, sec:'https', obs:'La licencia y calidad varía por dataset. Siempre verificar la fuente primaria del dataset.', scores:{authority:16,currency:16,transparency:15,replicability:20,consistency:12} },
+  'statista.com':           { name:'Statista', full:'Statista – Portal de Estadísticas', org:'Statista GmbH', cat:'Portal de estadísticas comerciales', lic:'Acceso restringido (suscripción)', upd:'Continua', fmt:'CSV, XLSX, PDF', reg:true, sec:'https', obs:'Portal de estadísticas con datos de múltiples fuentes. Las fuentes varían. Siempre verificar la fuente primaria de cada gráfica.', scores:{authority:16,currency:19,transparency:14,replicability:13,consistency:12} },
+  'gapminder.org':          { name:'Gapminder', full:'Gapminder – Fundación de Datos Globales', org:'Fundación Gapminder', cat:'Datos de desarrollo global', lic:'CC BY 4.0', upd:'Periódica', fmt:'CSV, XLSX', reg:false, sec:'https', obs:'Fundación dedicada a visualizar y difundir datos sobre desarrollo global. Datos bien documentados.', scores:{authority:20,currency:17,transparency:19,replicability:19,consistency:13} },
+};
+
+
+const ALTERNATIVES_BY_CAT = {
+  'Estadística': [
+    { name:'DANE', url:'https://www.dane.gov.co', desc:'Estadísticas oficiales de Colombia', score:98 },
+    { name:'OCDE', url:'https://stats.oecd.org', desc:'Estadísticas internacionales', score:94 },
+    { name:'Our World in Data', url:'https://ourworldindata.org', desc:'Datos globales temáticos', score:93 },
+  ],
+  'Salud': [
+    { name:'OMS', url:'https://www.who.int', desc:'Datos de salud globales', score:95 },
+    { name:'MinSalud CO', url:'https://www.minsalud.gov.co', desc:'Salud pública Colombia', score:91 },
+    { name:'Our World in Data', url:'https://ourworldindata.org', desc:'Datos de salud globales', score:93 },
+  ],
+  'Economía': [
+    { name:'Banco Mundial', url:'https://www.worldbank.org', desc:'Indicadores de desarrollo', score:96 },
+    { name:'Banco de la República', url:'https://www.banrep.gov.co', desc:'Economía Colombia', score:95 },
+    { name:'FMI', url:'https://www.imf.org', desc:'Datos macroeconómicos globales', score:94 },
+    { name:'CEPAL', url:'https://www.cepal.org', desc:'América Latina y Caribe', score:92 },
+  ],
+  'Datos abiertos': [
+    { name:'Datos Gov CO', url:'https://datos.gov.co', desc:'Portal oficial Colombia', score:90 },
+    { name:'Kaggle', url:'https://www.kaggle.com', desc:'Datasets científicos', score:79 },
+    { name:'Our World in Data', url:'https://ourworldindata.org', desc:'Datos globales con código abierto', score:93 },
+  ],
+  'General': [
+    { name:'DANE', url:'https://www.dane.gov.co', desc:'Estadísticas nacionales Colombia', score:98 },
+    { name:'Banco Mundial', url:'https://www.worldbank.org', desc:'Indicadores de desarrollo', score:96 },
+    { name:'Our World in Data', url:'https://ourworldindata.org', desc:'Datos globales temáticos', score:93 },
+    { name:'Datos Gov CO', url:'https://datos.gov.co', desc:'Datos abiertos del Estado', score:90 },
+  ],
+};
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let history = [];
+let lastResult = null;
+let currentTab = 'auto';
+
+// ─── MANUAL SLIDERS ──────────────────────────────────────────────────────────
+function buildManualSliders() {
+  const container = document.getElementById('manualSliders');
+  container.innerHTML = '';
+  DIMS.forEach(d => {
+    const div = document.createElement('div');
+    div.className = 'score-item';
+    div.innerHTML = `
+      <div class="score-item-header">
+        <span class="score-item-icon">${d.icon}</span>
+        <span class="score-item-name">${d.name}</span>
+        <span class="score-item-max">/ ${d.max} pts</span>
+      </div>
+      <input type="range" class="score-slider" id="sl_${d.key}" min="0" max="${d.max}" value="${Math.round(d.max*0.5)}"
+        oninput="updateManualTotal(); document.getElementById('sv_${d.key}').textContent=this.value">
+      <span class="score-val" id="sv_${d.key}">${Math.round(d.max*0.5)}</span>
+      <div class="score-criteria">${d.criteria}</div>
+    `;
+    container.appendChild(div);
+  });
+  updateManualTotal();
+}
+
+function updateManualTotal() {
+  const total = DIMS.reduce((s,d) => s + parseInt(document.getElementById('sl_'+d.key)?.value||0), 0);
+  document.getElementById('manualTotal').textContent = total;
+}
+
+buildManualSliders();
+
+// ─── TAB SWITCH ──────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('tabAuto').style.display = tab==='auto' ? 'block' : 'none';
+  document.getElementById('tabManual').style.display = tab==='manual' ? 'block' : 'none';
+  document.getElementById('manualPanel').style.display = 'block';
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', (i===0&&tab==='auto')||(i===1&&tab==='manual')));
+}
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+function getDomain(url) {
+  try {
+    let u = url.trim();
+    if (!u.startsWith('http')) u = 'https://' + u;
+    return new URL(u).hostname.replace('www.','');
+  } catch { return null; }
+}
+
+function getZone(t) {
+  if (t >= 81) return { cls:'hot', emoji:'🔴', label:'CALIENTE', desc:'Fuente altamente confiable y verificada. Cumple todos los criterios del TCD.', rec:'✅ Recomendada para proyectos académicos y profesionales. Citar correctamente.' };
+  if (t >= 61) return { cls:'warm', emoji:'🟠', label:'CÁLIDA', desc:'Fuente con alta credibilidad. Puede presentar algunas limitaciones menores.', rec:'✅ Recomendada. Verificar fechas de actualización y metodología antes de usar.' };
+  if (t >= 41) return { cls:'mild', emoji:'🟡', label:'TIBIA', desc:'Fuente con credibilidad moderada. Requiere validación cruzada con otras fuentes.', rec:'⚠️ Usar con validación cruzada. No usar como fuente única en el análisis.' };
+  return { cls:'cold', emoji:'🔵', label:'FRÍA', desc:'Fuente de baja credibilidad. No recomendada para análisis académico o profesional.', rec:'❌ No usar como fuente primaria de datos. Buscar una fuente alternativa oficial.' };
+}
+
+// ─── SEÑALES AUTOMÁTICAS DE URL ─────────────────────────────────────────────
+function autoSignals(url) {
+  const host = getDomain(url) || '';
+  const ext = host.split('.').pop().toLowerCase();
+  const signals = [];
+  let autoScore = { authority:0, currency:8, transparency:8, replicability:8, consistency:0 };
+  let org='Desconocido', cat='Sin clasificar', lic='No especificada', upd='Desconocida', fmt='Desconocido', reg=true, sec='https';
+  const isHttps = url.startsWith('https');
+  sec = isHttps ? 'https' : 'http';
+  if (isHttps) { signals.push({icon:'✅', txt:'Usa HTTPS – conexión segura y cifrada', pts:3}); autoScore.consistency+=3; }
+  else { signals.push({icon:'⚠️', txt:'Usa HTTP – sin cifrado, menor confianza', pts:0}); }
+  const tldMap = {
+    gov:{pts:20,label:'Dominio gubernamental (.gov)',org:'Entidad gubernamental',cat:'Oficial',lic:'Libre uso'},
+    edu:{pts:17,label:'Dominio educativo (.edu)',org:'Institución educativa',cat:'Académica',lic:'Académica'},
+    org:{pts:13,label:'Dominio de organización (.org)',org:'Organización sin ánimo de lucro',cat:'Organizaciones',lic:'Varía'},
+    int:{pts:18,label:'Dominio internacional (.int)',org:'Organismo internacional',cat:'Internacional',lic:'Libre uso'},
+    ac:{pts:16,label:'Dominio académico (.ac)',org:'Institución académica',cat:'Académica',lic:'Académica'},
+    com:{pts:8,label:'Dominio comercial (.com)',org:'Empresa privada',cat:'Comercial',lic:'Comercial'},
+    net:{pts:7,label:'Dominio de red (.net)',org:'Proveedor de servicios',cat:'Servicios',lic:'Varía'},
+    info:{pts:5,label:'Dominio informativo (.info)',org:'Desconocido',cat:'Informativo',lic:'Desconocida'},
+  };
+  const tld = tldMap[ext] || {pts:4,label:`Dominio .${ext}`,org:'Desconocido',cat:'Sin clasificar',lic:'Desconocida'};
+  autoScore.authority += tld.pts; org=tld.org; cat=tld.cat; lic=tld.lic;
+  signals.push({icon:tld.pts>=15?'✅':tld.pts>=10?'🟡':'⚠️', txt:`${tld.label} → ${tld.pts} pts de autoridad`, pts:tld.pts});
+  if (host.endsWith('.gov.co')) { autoScore.authority=22; org='Entidad gubernamental colombiana'; cat='Oficial Colombia'; signals.push({icon:'✅',txt:'Dominio oficial del gobierno colombiano (.gov.co)',pts:22}); }
+  if (host.endsWith('.edu.co')) { autoScore.authority=Math.max(autoScore.authority,18); org='Universidad colombiana'; cat='Académica Colombia'; signals.push({icon:'✅',txt:'Dominio educativo colombiano (.edu.co)',pts:18}); }
+  const isBlog=['blogspot','wordpress.com','wix.com','tumblr','weebly','blogger'].some(b=>host.includes(b));
+  const isSocial=['twitter','instagram','facebook','tiktok','reddit','youtube'].some(s=>host.includes(s));
+  if (isBlog) { autoScore={authority:2,currency:5,transparency:2,replicability:2,consistency:2}; org='Blog personal'; cat='No verificable'; signals.push({icon:'🚨',txt:'Plataforma de blog personal – sin respaldo institucional',pts:0}); }
+  if (isSocial) { autoScore={authority:2,currency:7,transparency:1,replicability:1,consistency:2}; org='Red social'; cat='No apta para datos'; signals.push({icon:'🚨',txt:'Red social – no válida para datos académicos',pts:0}); }
+  return { autoScore, signals, org, cat, lic, upd, fmt, reg, sec, isBlog, isSocial };
+}
+
+function scoreFromURL(url) {
+  const host = getDomain(url) || '';
+  for (const key of Object.keys(KNOWN)) {
+    if (host.includes(key)) return { ...KNOWN[key], scores: KNOWN[key].scores, isKnown:true };
+  }
+  return null; // Unknown → triggers questionnaire
+}
+
+// ─── SMART QUESTIONNAIRE ─────────────────────────────────────────────────────
+const QUESTIONS = [
+  { id:'author', dim:'authority', label:'¿La página o artículo tiene autor identificado?', options:[
+    {label:'Sí, con nombre, cargo e institución', pts:8, icon:'✅'},
+    {label:'Sí, solo nombre pero sin cargo o institución', pts:5, icon:'🟡'},
+    {label:'Firma con seudónimo o alias', pts:2, icon:'⚠️'},
+    {label:'Sin autor visible (anónimo)', pts:0, icon:'🚨'},
+  ]},
+  { id:'institution', dim:'authority', label:'¿A qué tipo de institución pertenece el autor o la página?', options:[
+    {label:'Gobierno, entidad pública u organismo internacional', pts:10, icon:'✅'},
+    {label:'Universidad o centro de investigación reconocido', pts:9, icon:'✅'},
+    {label:'ONG o fundación con trayectoria verificable', pts:7, icon:'🟡'},
+    {label:'Empresa privada con reputación comprobable', pts:5, icon:'🟡'},
+    {label:'Independiente o sin respaldo institucional claro', pts:1, icon:'⚠️'},
+  ]},
+  { id:'date', dim:'currency', label:'¿La página muestra fecha de publicación o actualización?', options:[
+    {label:'Sí, publicado hace menos de 1 año', pts:20, icon:'✅'},
+    {label:'Sí, publicado entre 1 y 3 años', pts:13, icon:'🟡'},
+    {label:'Sí, publicado hace más de 3 años', pts:7, icon:'⚠️'},
+    {label:'No tiene fecha visible', pts:0, icon:'🚨'},
+  ]},
+  { id:'references', dim:'transparency', label:'¿El contenido cita sus fuentes o tiene referencias bibliográficas?', options:[
+    {label:'Sí, cita todas sus fuentes con autor, año y enlace', pts:20, icon:'✅'},
+    {label:'Cita algunas fuentes pero no todas', pts:13, icon:'🟡'},
+    {label:'Menciona fuentes vagamente sin enlace', pts:6, icon:'⚠️'},
+    {label:'No cita ninguna fuente', pts:0, icon:'🚨'},
+  ]},
+  { id:'access', dim:'replicability', label:'¿Puedes acceder a los datos o fuentes originales desde esa página?', options:[
+    {label:'Sí, datos descargables o enlaces directos a fuentes primarias', pts:20, icon:'✅'},
+    {label:'Hay enlaces pero algunos no funcionan o son parciales', pts:12, icon:'🟡'},
+    {label:'Solo hay resúmenes, sin acceso a fuente original', pts:5, icon:'⚠️'},
+    {label:'No hay ningún enlace ni referencia verificable', pts:0, icon:'🚨'},
+  ]},
+  { id:'consistency', dim:'consistency', label:'¿Los datos o cifras que presenta la página parecen coherentes?', options:[
+    {label:'Sí, los datos son precisos, tienen unidades y fuentes claras', pts:12, icon:'✅'},
+    {label:'Algunos datos parecen correctos pero otros son vagos', pts:7, icon:'🟡'},
+    {label:'Los datos son aproximados o sin unidades de medida', pts:3, icon:'⚠️'},
+    {label:'Los datos parecen inconsistentes o exagerados', pts:0, icon:'🚨'},
+  ]},
+  { id:'verify', dim:'', isVerify:true, label:'¿Quieres que la IA verifique el contenido de esta página?', options:[
+    {label:'Sí, verificar con IA ahora', pts:0, icon:'🤖', doVerify:true},
+    {label:'No, continuar sin verificación de IA', pts:0, icon:'➡️', doVerify:false},
+  ]},
+];
+
+let qAnswers={}, qURL='', qAutoData=null, pendingVerify=false;
+
+function showQuestionnaire(url, autoData) {
+  qURL=url; qAnswers={}; qAutoData=autoData; pendingVerify=false;
+  document.getElementById('loading').style.display='none';
+  document.getElementById('results').style.display='none';
+  document.getElementById('empty').style.display='none';
+  document.getElementById('questionnairePanel').style.display='block';
+  document.getElementById('urlPreviewQ').textContent=url;
+  document.getElementById('autoSignalsBox').innerHTML = autoData.signals.map(s=>`
+    <div style="display:flex;gap:8px;align-items:flex-start;padding:5px 0;border-bottom:1px solid var(--border);font-size:.76rem;">
+      <span>${s.icon}</span><span style="color:var(--muted)">${s.txt}</span>
+    </div>`).join('');
+  renderQ(0);
+  document.getElementById('questionnairePanel').scrollIntoView({behavior:'smooth'});
+}
+
+function renderQ(idx) {
+  const q=QUESTIONS[idx], total=QUESTIONS.length, pct=Math.round((idx/total)*100);
+  document.getElementById('qProgress').style.width=pct+'%';
+  document.getElementById('qCounter').textContent=`${idx+1} / ${total}`;
+  document.getElementById('qTitle').textContent=q.label;
+  document.getElementById('qOptions').innerHTML=q.options.map((o,i)=>`
+    <button class="q-option ${qAnswers[q.id]===i?'selected':''}" onclick="answerQ(${idx},${i})">
+      <span class="q-opt-icon">${o.icon}</span><span class="q-opt-label">${o.label}</span>
+    </button>`).join('');
+  document.getElementById('qBack').style.display=idx>0?'inline-flex':'none';
+  const nxt=document.getElementById('qNext');
+  nxt.style.display=qAnswers[q.id]!==undefined?'inline-flex':'none';
+  nxt.textContent=idx===total-1?'VER RESULTADO →':'SIGUIENTE →';
+  nxt.onclick=()=>advanceQ(idx);
+  document.getElementById('qBack').onclick=()=>renderQ(idx-1);
+}
+
+function answerQ(idx,optIdx){ qAnswers[QUESTIONS[idx].id]=optIdx; renderQ(idx); }
+
+function advanceQ(idx) {
+  const q=QUESTIONS[idx];
+  if(qAnswers[q.id]===undefined) return;
+  if(q.isVerify) pendingVerify=q.options[qAnswers[q.id]].doVerify||false;
+  if(idx<QUESTIONS.length-1) renderQ(idx+1);
+  else finalizeQ();
+}
+
+function finalizeQ() {
+  document.getElementById('questionnairePanel').style.display='none';
+  const autoSc=qAutoData.autoScore;
+  let sc={authority:autoSc.authority, currency:0, transparency:0, replicability:0, consistency:autoSc.consistency};
+  QUESTIONS.forEach(q=>{
+    const ans=qAnswers[q.id];
+    if(ans===undefined||q.isVerify) return;
+    const pts=q.options[ans].pts;
+    if(q.dim==='authority')     sc.authority=Math.min(25,sc.authority+pts);
+    else if(q.dim==='currency') sc.currency=Math.min(20,(sc.currency||0)+pts);
+    else if(q.dim==='transparency') sc.transparency=Math.min(20,(sc.transparency||0)+pts);
+    else if(q.dim==='replicability') sc.replicability=Math.min(20,(sc.replicability||0)+pts);
+    else if(q.dim==='consistency') sc.consistency=Math.min(15,sc.consistency+pts);
+  });
+  const obsLines=[];
+  QUESTIONS.forEach(q=>{ const ans=qAnswers[q.id]; if(ans!==undefined&&!q.isVerify) obsLines.push(`${q.label} → ${q.options[ans].label}`); });
+  const source={
+    name:getDomain(qURL)||'Fuente desconocida', full:getDomain(qURL)||'Fuente desconocida',
+    org:qAutoData.org, cat:qAutoData.cat, lic:qAutoData.lic,
+    upd:'Ver fecha en la página', fmt:'No determinado', reg:false, sec:qAutoData.sec,
+    obs:'Evaluación mixta: análisis automático + cuestionario del analista. '+obsLines.join(' | '),
+    scores:sc, isQuestionnaire:true, autoSignals:qAutoData.signals,
+  };
+  const analyst=document.getElementById('analystName').value.trim();
+  const project=document.getElementById('projectName').value.trim();
+  if(pendingVerify) runAIVerification(qURL, source, analyst, project);
+  else showResults(qURL, source, analyst, project);
+}
+
+async function runAIVerification(url, source, analyst, project) {
+  document.getElementById('loading').style.display='block';
+  document.getElementById('stepsList').innerHTML=`
+    <div class="step active" id="stV0">🤖 Conectando con IA para verificar contenido...</div>
+    <div class="step" id="stV1">⏳ Analizando credibilidad con fuentes externas...</div>
+    <div class="step" id="stV2">⏳ Generando dictamen de verificación...</div>`;
+  try {
+    setTimeout(()=>{document.getElementById('stV0').className='step done';document.getElementById('stV0').textContent='✅ Conectado con IA';document.getElementById('stV1').className='step active';},900);
+    setTimeout(()=>{document.getElementById('stV1').className='step done';document.getElementById('stV1').textContent='✅ Análisis completado';document.getElementById('stV2').className='step active';},2000);
+    const prompt=`Eres un experto en evaluación de fuentes de datos académicas para el Laboratorio de Datos de CEIPA Business School en Colombia.
+
+Analiza esta URL y responde si es confiable para análisis de datos académico:
+URL: ${url}
+Dominio: ${getDomain(url)}
+Tipo detectado: ${source.org} (${source.cat})
+
+Responde SOLO con este formato exacto en español:
+VEREDICTO: [Confiable / Parcialmente confiable / No confiable]
+RAZÓN PRINCIPAL: [1 oración clara]
+SEÑALES POSITIVAS:
+- [señal 1]
+- [señal 2]
+SEÑALES DE ALERTA:
+- [alerta 1]
+- [alerta 2]
+RECOMENDACIÓN: [qué debe verificar el analista]
+ALTERNATIVA SUGERIDA: [una fuente más confiable del mismo tema]`;
+
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,messages:[{role:'user',content:prompt}]})
+    });
+    const data=await resp.json();
+    source.aiVerification=data.content?.[0]?.text||'No se pudo obtener respuesta.';
+    const txt=source.aiVerification.toLowerCase();
+    if(txt.includes('no confiable')){ source.scores.authority=Math.max(2,source.scores.authority-5); source.scores.transparency=Math.max(1,source.scores.transparency-3); }
+    else if(!txt.includes('parcialmente')&&txt.includes('confiable')){ source.scores.authority=Math.min(25,source.scores.authority+3); source.scores.transparency=Math.min(20,source.scores.transparency+2); }
+    setTimeout(()=>showResults(url,source,analyst,project),600);
+  } catch(err) {
+    source.aiVerification=`⚠️ No se pudo conectar con la IA. El resultado se calculó solo con el cuestionario.
+Error: ${err.message}`;
+    showResults(url,source,analyst,project);
+  }
+}
+
+// LEVA — 7 criterios completos del documento
+function buildLEVA(source, total, zone, url) {
+  const s = source.scores;
+  const host = getDomain(url)||'';
+  const items = [];
+
+  // Criterio 1: Valores nulos / calidad
+  if (s.consistency >= 12)
+    items.push({ sev:'ok', icon:'✅', txt:'CRITERIO 1 – Valores nulos: No se detectaron anomalías obvias en la estructura de los datos. Se recomienda verificar manualmente al descargar.' });
+  else
+    items.push({ sev:'warn', icon:'⚠️', txt:'CRITERIO 1 – Valores nulos: Alta probabilidad de encontrar valores vacíos, nulos o sin justificación. Verificar con herramientas como OpenRefine o Excel.' });
+
+  // Criterio 2: Rangos numéricos
+  if (s.consistency >= 10)
+    items.push({ sev:'ok', icon:'✅', txt:'CRITERIO 2 – Rangos numéricos: La fuente tiene reputación de consistencia en sus rangos de datos (sin porcentajes > 100%, edades negativas, etc.).' });
+  else
+    items.push({ sev:'danger', icon:'🚨', txt:'CRITERIO 2 – Rangos numéricos: Fuente con baja consistencia. Verificar que los rangos sean coherentes antes de analizar (porcentajes, edades, fechas, totales).' });
+
+  // Criterio 3: Registros duplicados
+  if (s.replicability >= 15)
+    items.push({ sev:'ok', icon:'✅', txt:'CRITERIO 3 – Duplicados: Fuente con alta replicabilidad. Datos abiertos descargables permiten verificar duplicados con herramientas propias.' });
+  else
+    items.push({ sev:'warn', icon:'⚠️', txt:'CRITERIO 3 – Duplicados: No es posible verificar registros duplicados automáticamente. Al descargar los datos, usar la función "Eliminar duplicados" en Excel o Python/Pandas.' });
+
+  // Criterio 4: Nombres de columnas
+  if (s.transparency >= 16)
+    items.push({ sev:'ok', icon:'✅', txt:'CRITERIO 4 – Estructura: La fuente documenta su estructura y diccionario de datos. Los nombres de columnas deben ser claros y consistentes.' });
+  else
+    items.push({ sev:'warn', icon:'⚠️', txt:'CRITERIO 4 – Estructura: Documentación de columnas no verificada o incompleta. Verificar manualmente que los nombres de columnas sean descriptivos y no ambiguos.' });
+
+  // Criterio 5: Fechas y formato
+  if (s.currency >= 16)
+    items.push({ sev:'ok', icon:'✅', txt:'CRITERIO 5 – Formato de fechas: Fuente actualizada regularmente. Es probable que los formatos de fecha sean estándar (YYYY-MM-DD o similares).' });
+  else
+    items.push({ sev:'warn', icon:'⚠️', txt:'CRITERIO 5 – Formato de fechas: Verificar que todas las fechas estén en formato estándar y consistente. Formatos mixtos son una anomalía frecuente en fuentes de baja actualización.' });
+
+  // Criterio 6: Número de filas vs. documentación
+  if (s.transparency >= 15 && s.replicability >= 15)
+    items.push({ sev:'ok', icon:'✅', txt:'CRITERIO 6 – Integridad del dataset: La fuente documenta el número de registros esperados. Al descargar, verificar que el conteo de filas coincida con lo declarado.' });
+  else
+    items.push({ sev:'warn', icon:'⚠️', txt:'CRITERIO 6 – Integridad del dataset: Sin documentación del número de registros esperados. Verificar manualmente que el total de filas sea coherente con el alcance declarado.' });
+
+  // Criterio 7: Codificación y caracteres
+  if (s.authority >= 18)
+    items.push({ sev:'info', icon:'ℹ️', txt:'CRITERIO 7 – Codificación: Fuente institucional. Es probable que use UTF-8 o ISO-8859-1. Si aparecen caracteres extraños al abrir, cambiar la codificación al importar en Excel o Python.' });
+  else
+    items.push({ sev:'warn', icon:'⚠️', txt:'CRITERIO 7 – Codificación: Fuente sin estándar verificado. Alta probabilidad de caracteres especiales incorrectos (tildes, ñ, símbolos). Verificar codificación UTF-8 al importar.' });
+
+  // Resumen final
+  if (total >= 81)
+    items.push({ sev:'ok', icon:'🏆', txt:'RESUMEN LEVA: Fuente validada. Sin alertas críticas en los 7 criterios. Apta para uso en proyectos del Laboratorio de Datos CEIPA.' });
+  else if (total >= 61)
+    items.push({ sev:'info', icon:'📌', txt:'RESUMEN LEVA: Fuente recomendable con precauciones menores. Revisar los criterios marcados con ⚠️ antes de incluirla en el análisis.' });
+  else if (total >= 41)
+    items.push({ sev:'warn', icon:'📌', txt:'RESUMEN LEVA: Fuente de credibilidad media. Obligatoria la validación cruzada con una fuente alternativa antes de usar en análisis académico.' });
+  else
+    items.push({ sev:'danger', icon:'🚫', txt:'RESUMEN LEVA: Fuente NO recomendada. Se detectaron múltiples alertas críticas. Usar las fuentes alternativas sugeridas.' });
+
+  return items;
+}
+
+function buildFRV(url, source, total, zone, date, analyst, project) {
+  return [
+    ['Nombre de la fuente',         source.full || source.name],
+    ['URL / Ruta de descarga',      url || 'No especificada'],
+    ['Organismo responsable',       source.org],
+    ['Categoría temática',          source.cat],
+    ['Licencia de uso',             source.lic],
+    ['Frecuencia de actualización', source.upd],
+    ['Formatos disponibles',        source.fmt],
+    ['¿Requiere registro?',         source.reg ? 'Sí' : 'No'],
+    ['Protocolo de seguridad',      source.sec === 'https' ? 'HTTPS ✅ (cifrado)' : 'HTTP ⚠️ (sin cifrar)'],
+    ['Puntaje TCD',                 `${total} / 100 pts`],
+    ['Zona de credibilidad',        `${zone.emoji} ${zone.label}`],
+    ['Observaciones del analista',  source.obs || 'Sin observaciones adicionales'],
+    ['Nombre del analista',         analyst || 'No especificado'],
+    ['Proyecto / Asignatura',       project || 'No especificado'],
+    ['Fecha de análisis',           date],
+    ['Herramienta de verificación', 'DataVerif v2.0 · CEIPA Laboratorio de Datos'],
+  ];
+}
+
+function getAlternatives(source, total) {
+  const cat = source.cat || 'General';
+  let key = 'General';
+  if (/salud|health/i.test(cat)) key='Salud';
+  else if (/econ|financ|banco|monetar/i.test(cat)) key='Economía';
+  else if (/estadíst|census|censo/i.test(cat)) key='Estadística';
+  else if (/abiertos|open|portal/i.test(cat)) key='Datos abiertos';
+  return ALTERNATIVES_BY_CAT[key] || ALTERNATIVES_BY_CAT['General'];
+}
+
+// ─── RENDER ──────────────────────────────────────────────────────────────────
+function renderThermo(total, zone) {
+  const h = (total/100)*108, y = 128-h;
+  setTimeout(() => {
+    document.getElementById('tFill').setAttribute('y', y);
+    document.getElementById('tFill').setAttribute('height', h);
+    const colors={hot:'#00d4aa',warm:'#3b82f6',mild:'#f59e0b',cold:'#ef4444'};
+    document.getElementById('tBulb').setAttribute('fill', colors[zone.cls]);
+  }, 200);
+  document.getElementById('scoreNum').textContent = total;
+  document.getElementById('scoreNum').className = 't-score c-'+zone.cls;
+  const zb = document.getElementById('zoneBadge');
+  zb.textContent = zone.emoji+' '+zone.label;
+  zb.className = 't-zone-badge badge-'+zone.cls;
+}
+
+function renderHero(source, total, zone, url) {
+  document.getElementById('srcTitle').textContent = source.full||source.name;
+  document.getElementById('srcURL').textContent = url || 'Evaluación manual';
+  const vb = document.getElementById('verdictBox');
+  vb.className = 'verdict bg-'+zone.cls;
+  vb.innerHTML = `<strong>${zone.desc}</strong><div class="rec">${zone.rec}</div>`;
+}
+
+function renderDims(scores) {
+  const zone = getZone(Object.values(scores).reduce((a,b)=>a+b,0));
+  const colors={hot:'#00d4aa',warm:'#3b82f6',mild:'#f59e0b',cold:'#ef4444'};
+  const c = colors[zone.cls];
+  const grid = document.getElementById('dimsGrid');
+  grid.innerHTML = '';
+  DIMS.forEach(d => {
+    const pts=scores[d.key], pct=Math.round((pts/d.max)*100);
+    const el=document.createElement('div');
+    el.className='dim';
+    el.innerHTML=`
+      <div class="dim-hdr">
+        <span class="dim-icon">${d.icon}</span>
+        <span class="dim-name">${d.name}</span>
+        <span class="dim-pts" style="color:${c}">${pts}/${d.max}</span>
+      </div>
+      <div class="bar-bg"><div class="bar-fill" id="bf_${d.key}" style="background:${c}"></div></div>
+      <div class="dim-note">${d.note}</div>
+      <div class="dim-criterion">${d.criteria}</div>
+    `;
+    grid.appendChild(el);
+    setTimeout(() => { document.getElementById('bf_'+d.key).style.width=pct+'%'; }, 300);
+  });
+}
+
+function renderFRV(rows) {
+  document.getElementById('frvTable').innerHTML = rows.map(([k,v]) =>
+    `<tr><td>${k}</td><td>${v}</td></tr>`).join('');
+}
+
+function renderLEVA(items) {
+  document.getElementById('levaList').innerHTML = items.map(it =>
+    `<div class="leva-item ${it.sev}"><span class="leva-icon">${it.icon}</span><span>${it.txt}</span></div>`
+  ).join('');
+}
+
+function renderAlts(source, total, zone) {
+  const alts = getAlternatives(source, total);
+  const intro = document.getElementById('altIntro');
+  if (total >= 81) {
+    intro.textContent = 'Tu fuente tiene alta credibilidad. Estas son otras fuentes complementarias de la misma categoría:';
+  } else {
+    intro.textContent = `Puntaje bajo (${total}/100). Se recomienda reemplazar o complementar con alguna de estas fuentes verificadas:`;
+  }
+  const zColors={hot:'#00d4aa',warm:'#3b82f6',mild:'#f59e0b',cold:'#ef4444'};
+  document.getElementById('altGrid').innerHTML = alts.slice(0,4).map(a => {
+    const az=getZone(a.score); const ac=zColors[az.cls];
+    return `<div class="alt-item" onclick="setEx('${a.url}')">
+      <div class="alt-name">${a.name}</div>
+      <div class="alt-url">${a.url}</div>
+      <div class="alt-desc">${a.desc}</div>
+      <span class="alt-score" style="background:rgba(${az.cls==='hot'?'0,212,170':az.cls==='warm'?'59,130,246':az.cls==='mild'?'245,158,11':'239,68,68'},.15);color:${ac}">${a.score} pts TCD</span>
+    </div>`;
+  }).join('');
+}
+
+function addHistory(url, total, zone) {
+  const colors={hot:'#00d4aa',warm:'#3b82f6',mild:'#f59e0b',cold:'#ef4444'};
+  history.unshift({ url:url||'Evaluación manual', total, color:colors[zone.cls] });
+  if (history.length>6) history.pop();
+  const sec=document.getElementById('historySec');
+  const grid=document.getElementById('historyGrid');
+  sec.style.display='block';
+  grid.innerHTML=history.map(h=>`
+    <div class="history-item" onclick="setEx('${h.url}')">
+      <div class="h-dot" style="background:${h.color}"></div>
+      <span class="h-url">${h.url}</span>
+      <span class="h-score" style="color:${h.color}">${h.total} / 100</span>
+    </div>`).join('');
+}
+
+// ─── ANALYZE AUTO ────────────────────────────────────────────────────────────
+function analyze() {
+  const url = document.getElementById('urlInput').value.trim();
+  if (!url) { alert('Por favor ingresa una URL.'); return; }
+  const analyst = document.getElementById('analystName').value.trim();
+  const project = document.getElementById('projectName').value.trim();
+
+  document.getElementById('empty').style.display='none';
+  document.getElementById('results').style.display='none';
+  document.getElementById('loading').style.display='block';
+
+  const stepsTxt=['Identificando dominio y tipo de fuente...','Evaluando autoridad institucional...','Calculando Termómetro de Credibilidad (TCD)...','Generando Ficha FRV completa (16 campos)...','Aplicando 7 criterios LEVA...','Buscando fuentes alternativas recomendadas...'];
+  const sl=document.getElementById('stepsList');
+  sl.innerHTML = stepsTxt.map((t,i)=>`<div class="step" id="st${i}">⏳ ${t}</div>`).join('');
+
+  let i=0;
+  const iv=setInterval(()=>{
+    if(i>0){ const prev=document.getElementById('st'+(i-1)); if(prev){prev.className='step done'; prev.textContent=prev.textContent.replace('⏳','✅');} }
+    if(i<stepsTxt.length){ const cur=document.getElementById('st'+i); if(cur)cur.className='step active'; i++; }
+    else {
+      clearInterval(iv);
+      const known = scoreFromURL(url);
+      if (known) {
+        showResults(url, known, analyst, project);
+      } else {
+        const autoData = autoSignals(url);
+        showQuestionnaire(url, autoData);
+      }
+    }
+  }, 420);
+}
+
+// ─── ANALYZE MANUAL ──────────────────────────────────────────────────────────
+function analyzeManual() {
+  const name = document.getElementById('mSourceName').value.trim();
+  if (!name) { alert('Por favor ingresa el nombre de la fuente.'); return; }
+  const url = document.getElementById('mSourceURL').value.trim()||'';
+  const analyst = document.getElementById('mAnalyst').value.trim();
+  const project = document.getElementById('mProject').value.trim();
+  const scores = {};
+  DIMS.forEach(d => { scores[d.key] = parseInt(document.getElementById('sl_'+d.key).value); });
+  const source = { name, full:name, org:'Evaluación manual', cat:'General', lic:'No especificada', upd:'No especificada', fmt:'No especificado', reg:false, sec:'https', obs:'Evaluación realizada manualmente por el analista usando los criterios del TCD.', scores };
+  document.getElementById('empty').style.display='none';
+  showResults(url||null, source, analyst, project);
+}
+
+// ─── SHOW RESULTS ────────────────────────────────────────────────────────────
+function showResults(url, forcedSource, analyst, project) {
+  const source = forcedSource || scoreFromURL(url||'');
+  const scores = source.scores;
+  const total = Object.values(scores).reduce((a,b)=>a+b,0);
+  const zone = getZone(total);
+  const date = new Date().toLocaleDateString('es-CO',{year:'numeric',month:'long',day:'numeric'});
+  const frvRows = buildFRV(url||'', source, total, zone, date, analyst, project);
+  const levaItems = buildLEVA(source, total, zone, url||'');
+
+  lastResult = { url, source, total, zone, date, frvRows, levaItems, analyst, project };
+
+  document.getElementById('loading').style.display='none';
+  document.getElementById('results').style.display='block';
+
+  renderThermo(total, zone);
+  renderHero(source, total, zone, url);
+  renderDims(scores);
+  renderFRV(frvRows);
+  renderLEVA(levaItems);
+  renderAlts(source, total, zone);
+  addHistory(url, total, zone);
+
+  // Show AI verification if present
+  const aiCard = document.getElementById('aiResultCard');
+  const aiText = document.getElementById('aiResultText');
+  if (source.aiVerification) {
+    aiCard.style.display='block';
+    aiText.textContent = source.aiVerification;
+  } else {
+    aiCard.style.display='none';
+  }
+
+  document.getElementById('results').scrollIntoView({ behavior:'smooth' });
+}
+
+// ─── UTILS ───────────────────────────────────────────────────────────────────
+function setEx(url) { document.getElementById('urlInput').value=url; switchTab('auto'); analyze(); }
+function resetApp() {
+  document.getElementById('results').style.display='none';
+  document.getElementById('empty').style.display='block';
+  document.getElementById('questionnairePanel').style.display='none';
+  document.getElementById('urlInput').value='';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function copyFRV() {
+  if (!lastResult) return;
+  const txt = lastResult.frvRows.map(([k,v])=>`${k}: ${v}`).join('\n');
+  navigator.clipboard.writeText(txt).then(()=>alert('✅ Ficha FRV copiada al portapapeles'));
+}
+
+function downloadReport() {
+  if (!lastResult) return;
+  const { url, source, total, zone, date, frvRows, levaItems, analyst, project } = lastResult;
+  const line='='.repeat(58);
+  const report=`REPORTE DATAVERIF v2.0 – CEIPA LABORATORIO DE DATOS
+${line}
+Fecha de análisis : ${date}
+Analista          : ${analyst||'No especificado'}
+Proyecto          : ${project||'No especificado'}
+URL analizada     : ${url||'Evaluación manual'}
+${line}
+
+[ TERMÓMETRO DE CREDIBILIDAD (TCD) ]
+Puntaje total     : ${total} / 100 pts
+Zona              : ${zone.emoji} ${zone.label}
+Diagnóstico       : ${zone.desc}
+Recomendación     : ${zone.rec}
+
+[ DESGLOSE POR DIMENSIÓN ]
+${DIMS.map(d=>`  ${d.icon} ${d.name.padEnd(30)}: ${source.scores[d.key]} / ${d.max} pts`).join('\n')}
+
+[ FICHA DE RUTA VERIFICADA (FRV) — 16 CAMPOS ]
+${frvRows.map(([k,v])=>`  ${k.padEnd(32)}: ${v}`).join('\n')}
+
+[ LISTA DE VERIFICACIÓN DE ANOMALÍAS (LEVA) — 7 CRITERIOS ]
+${levaItems.map(it=>`  ${it.icon} ${it.txt}`).join('\n')}
+
+${line}
+Generado por DataVerif v2.0 · CEIPA Business School
+Instrumentos aplicados: TCD · FRV (16 campos) · LEVA (7 criterios)
+Metodología: CRISP-DM Fase 1 + MFI · Eje 1 y Eje 2 del Laboratorio de Datos
+`;
+  const blob=new Blob([report],{type:'text/plain;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  const fname=(url?(getDomain(url)||'manual'):'manual').replace(/[^a-z0-9]/gi,'_');
+  a.download=`FRV_TCD_${fname}_${Date.now()}.txt`; a.click();
+}
+</script>
+</body>
+</html>
